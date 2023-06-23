@@ -5,6 +5,7 @@ import 'package:agora/bloc/consultation/details/consultation_details_view_model.
 import 'package:agora/common/analytics/analytics_event_names.dart';
 import 'package:agora/common/analytics/analytics_screen_names.dart';
 import 'package:agora/common/helper/notification_helper.dart';
+import 'package:agora/common/helper/platform_helper.dart';
 import 'package:agora/common/helper/thematique_helper.dart';
 import 'package:agora/common/helper/tracker_helper.dart';
 import 'package:agora/common/manager/repository_manager.dart';
@@ -15,9 +16,8 @@ import 'package:agora/design/custom_view/agora_participants_progress_bar.dart';
 import 'package:agora/design/custom_view/agora_rounded_card.dart';
 import 'package:agora/design/custom_view/agora_scaffold.dart';
 import 'package:agora/design/custom_view/agora_toolbar.dart';
-import 'package:agora/design/custom_view/button/agora_button.dart';
-import 'package:agora/design/style/agora_button_style.dart';
 import 'package:agora/design/style/agora_colors.dart';
+import 'package:agora/design/style/agora_corners.dart';
 import 'package:agora/design/style/agora_spacings.dart';
 import 'package:agora/design/style/agora_text_styles.dart';
 import 'package:agora/pages/consultation/question/consultation_question_page.dart';
@@ -101,6 +101,32 @@ class _ConsultationDetailsPageState extends State<ConsultationDetailsPage> {
 
   Widget _handleFetchState(BuildContext context, ConsultationDetailsFetchedState state) {
     return AgoraScaffold(
+      floatingActionButton: Theme(
+        data: Theme.of(context).copyWith(
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(AgoraCorners.rounded)),
+            extendedSizeConstraints: BoxConstraints.tightFor(height: 38),
+            extendedPadding: EdgeInsets.symmetric(horizontal: AgoraSpacings.x0_75),
+            extendedTextStyle: AgoraTextStyles.primaryButton,
+          ),
+        ),
+        child: FloatingActionButton.extended(
+          backgroundColor: AgoraColors.primaryBlue,
+          label: Text(ConsultationStrings.beginButton),
+          onPressed: () {
+            TrackerHelper.trackClick(
+              clickName: "${AnalyticsEventNames.startConsultation} ${widget.consultationId}",
+              widgetName: AnalyticsScreenNames.consultationDetailsPage,
+            );
+            Navigator.pushNamed(
+              context,
+              ConsultationQuestionPage.routeName,
+              arguments: state.viewModel.id,
+            );
+          },
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       child: Column(
         children: [
           AgoraToolbar(),
@@ -198,22 +224,10 @@ class _ConsultationDetailsPageState extends State<ConsultationDetailsPage> {
                 padding: const EdgeInsets.all(AgoraSpacings.base),
                 child: AgoraHtml(data: viewModel.tipsDescription),
               ),
-              SizedBox(height: AgoraSpacings.base),
-              AgoraButton(
-                label: ConsultationStrings.beginButton,
-                style: AgoraButtonStyle.primaryButtonStyle,
-                onPressed: () {
-                  TrackerHelper.trackClick(
-                    clickName: "${AnalyticsEventNames.startConsultation} ${widget.consultationId}",
-                    widgetName: AnalyticsScreenNames.consultationDetailsPage,
-                  );
-                  Navigator.pushNamed(
-                    context,
-                    ConsultationQuestionPage.routeName,
-                    arguments: viewModel.id,
-                  );
-                },
-              ),
+              if (PlatformStaticHelper.isAndroid())
+                SizedBox(height: AgoraSpacings.x3_25)
+              else
+                SizedBox(height: AgoraSpacings.x5),
             ],
           ),
         ),
